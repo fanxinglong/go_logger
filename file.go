@@ -3,8 +3,6 @@ package logger
 import (
 	"fmt"
 	"os"
-	"path"
-	"time"
 )
 
 type FileLogger struct {
@@ -55,44 +53,46 @@ func (f *FileLogger) SetLevel(level int) {
 	f.level = level
 }
 
-func (f *FileLogger) writeLog(file *os.File, level int, format string, args ...interface{}) {
-	if f.level > level {
+func (f *FileLogger) Debug(format string, args ...interface{}) {
+	if f.level > LogLevelDebug {
 		return
 	}
-	//str := fmt.Sprintf(format, args...)
-	tNow := time.Now()
-	//时间转化为string，layout必须为 "2006-01-02 15:04:05"
-	timeNow := tNow.Format("2006-01-02 15:04:05")
-	levelStr := getLevelToText(level)
-	fileName, funcName, lineNo := getLineInfo()
-	fileName = path.Base(fileName)
-	funcName = path.Base(funcName)
-	msg := fmt.Sprintf(format, args...)
-	fmt.Fprintf(file, "%s,%s,(%s:%s:%d),%s\n", timeNow, levelStr, fileName, funcName, lineNo, msg)
-}
-
-func (f *FileLogger) Debug(format string, args ...interface{}) {
-	f.writeLog(f.file, LogLevelDebug, format, args...)
+	writeLog(f.file, LogLevelDebug, format, args...)
 }
 
 func (f *FileLogger) Trace(format string, args ...interface{}) {
-	f.writeLog(f.file, LogLevelTrace, format, args...)
+	if f.level > LogLevelTrace {
+		return
+	}
+	writeLog(f.file, LogLevelTrace, format, args...)
 }
 
 func (f *FileLogger) Info(format string, args ...interface{}) {
-	f.writeLog(f.file, LogLevelInfo, format, args...)
+	if f.level > LogLevelInfo {
+		return
+	}
+	writeLog(f.file, LogLevelInfo, format, args...)
 }
 
 func (f *FileLogger) Warn(format string, args ...interface{}) {
-	f.writeLog(f.warnFile, LogLevelWarn, format, args...)
+	if f.level > LogLevelWarn {
+		return
+	}
+	writeLog(f.warnFile, LogLevelWarn, format, args...)
 }
 
 func (f *FileLogger) Error(format string, args ...interface{}) {
-	f.writeLog(f.warnFile, LogLevelError, format, args...)
+	if f.level > LogLevelError {
+		return
+	}
+	writeLog(f.warnFile, LogLevelError, format, args...)
 }
 
 func (f *FileLogger) Fatal(format string, args ...interface{}) {
-	f.writeLog(f.warnFile, LogLevelFatal, format, args...)
+	if f.level > LogLevelFatal {
+		return
+	}
+	writeLog(f.warnFile, LogLevelFatal, format, args...)
 }
 
 func (f *FileLogger) Close() {
